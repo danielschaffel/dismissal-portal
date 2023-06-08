@@ -2,14 +2,23 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
+import BusRoutes from "./Routes";
 import reportWebVitals from "./reportWebVitals";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import BusComponent from "./BusComponent";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/routes" element={<BusRoutes />} />
+        <Route path="/route/:routeName" element={<BusComponent />} />
+      </Routes>
+    </BrowserRouter>
   </React.StrictMode>
 );
 

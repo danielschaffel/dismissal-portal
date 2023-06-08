@@ -1,27 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
 import StudentRow from "./StudentRow";
+import { useParams } from "react-router-dom";
 
 interface BusComponentProps {
   routeName: string;
   students: string[];
 }
 
-const BusComponent: React.FC<BusComponentProps> = ({ routeName, students }) => {
-  const [expanded, setExpanded] = useState(false);
+interface StudentData {
+  student: any;
+  isPresent: boolean;
+  presentCount: number;
+  totalCount: number;
+}
 
-  const [studentData, setStudentData] = useState(
-    students.map((student) => ({
-      name: student,
-      isPresent: false,
-      presentCount: 0,
-      totalCount: students.length,
-    }))
-  );
+const BusComponent: React.FC = () => {
+  const { routeName } = useParams();
+  const [expanded, setExpanded] = useState(false);
+  const [studentData, setStudentData] = useState<StudentData[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/route/${routeName}`
+        ); // Replace '/api/data' with your backend API endpoint
+        const jsonData = await response.json();
+        setStudentData(
+          jsonData.map((student: string) => ({
+            student: student,
+            isPresent: false,
+            presentCount: 0,
+            totalCount: jsonData.length,
+          }))
+        );
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const markStudentPresent = (index: number) => {
-    setStudentData((prevStudentData) => {
+    setStudentData((prevStudentData: StudentData[]) => {
       const updatedStudentData = [...prevStudentData];
       const [markedStudent] = updatedStudentData.splice(index, 1);
       markedStudent.isPresent = true;
@@ -39,7 +63,7 @@ const BusComponent: React.FC<BusComponentProps> = ({ routeName, students }) => {
   };
 
   const markStudentAbsent = (index: number) => {
-    setStudentData((prevStudentData) => {
+    setStudentData((prevStudentData: StudentData[]) => {
       const updatedStudentData = [...prevStudentData];
       const [markedStudent] = updatedStudentData.splice(index, 1);
       markedStudent.isPresent = false;
@@ -65,8 +89,8 @@ const BusComponent: React.FC<BusComponentProps> = ({ routeName, students }) => {
     datasets: [
       {
         data: [
-          studentData[0].presentCount,
-          studentData[0].totalCount - studentData[0].presentCount,
+          studentData[0]?.presentCount,
+          studentData[0]?.totalCount - studentData[0]?.presentCount,
         ],
         backgroundColor: ["#36A2EB", "#FF6384"],
         hoverBackgroundColor: ["#36A2EB", "#FF6384"],
@@ -74,11 +98,15 @@ const BusComponent: React.FC<BusComponentProps> = ({ routeName, students }) => {
     ],
   };
 
+  if (!studentData[0]) {
+    return <div>"loading..."</div>;
+  }
+
   return (
     <div>
       <h2 onClick={toggleExpand}>
-        Bus Route: {routeName} ({studentData[0].presentCount} /{" "}
-        {studentData[0].totalCount})
+        Bus Route: {routeName} ({studentData[0]?.presentCount} /{" "}
+        {studentData[0]?.totalCount})
         <div style={{ maxWidth: "100px", margin: "0 auto" }}>
           <Pie data={data} />
         </div>
@@ -90,7 +118,7 @@ const BusComponent: React.FC<BusComponentProps> = ({ routeName, students }) => {
             {studentData.map((student, index) => (
               <StudentRow
                 key={index}
-                name={student.name}
+                student={student.student}
                 markPresent={() => markStudentPresent(index)}
                 markAbsent={() => markStudentAbsent(index)}
                 isPresent={student.isPresent}

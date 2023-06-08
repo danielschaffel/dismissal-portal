@@ -1,12 +1,12 @@
 interface StudentRowProps {
-  name: string;
+  student: any;
   markPresent: () => void;
   markAbsent: () => void;
   isPresent: boolean;
 }
 
 const StudentRow: React.FC<StudentRowProps> = ({
-  name,
+  student,
   markPresent,
   markAbsent,
   isPresent,
@@ -17,9 +17,10 @@ const StudentRow: React.FC<StudentRowProps> = ({
   } else {
     buttonAction = markPresent;
   }
+  console.log("StudentRow", student.name);
   return (
     <li className={`student-row ${isPresent ? "present" : ""}`}>
-      {name} - {isPresent ? "Present" : "Absent"}
+      {student.name} - {isPresent ? "Present" : "Absent"}
       <button className="present-button" onClick={buttonAction}>
         {isPresent ? "Mark Absent" : "Mark Present"}
       </button>
