@@ -1,28 +1,36 @@
+export interface StudentData {
+  name: string;
+  route: string;
+  grade: string;
+  method: string;
+  school_attendance: string;
+  boarded: boolean;
+  presentCount: number;
+  totalCount: number;
+}
+
 interface StudentRowProps {
-  student: any;
+  student: StudentData;
   markPresent: () => void;
   markAbsent: () => void;
-  isPresent: boolean;
 }
 
 const StudentRow: React.FC<StudentRowProps> = ({
   student,
   markPresent,
   markAbsent,
-  isPresent,
 }) => {
   let buttonAction;
-  if (isPresent) {
+  if (student.boarded) {
     buttonAction = markAbsent;
   } else {
     buttonAction = markPresent;
   }
-  console.log("StudentRow", student.name);
   return (
-    <li className={`student-row ${isPresent ? "present" : ""}`}>
-      {student.name} - {isPresent ? "Present" : "Absent"}
+    <li className={`student-row ${student.boarded ? "present" : ""}`}>
+      {student.name} - {student.boarded ? "Present" : "Absent"}
       <button className="present-button" onClick={buttonAction}>
-        {isPresent ? "Mark Absent" : "Mark Present"}
+        {student.boarded ? "Mark Absent" : "Mark Present"}
       </button>
     </li>
   );

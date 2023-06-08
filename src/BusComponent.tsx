@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
-import StudentRow from "./StudentRow";
+import StudentRow, { StudentData } from "./StudentRow";
 import { useParams } from "react-router-dom";
 
 interface BusComponentProps {
   routeName: string;
   students: string[];
-}
-
-interface StudentData {
-  student: any;
-  isPresent: boolean;
-  presentCount: number;
-  totalCount: number;
 }
 
 const BusComponent: React.FC = () => {
@@ -28,10 +21,15 @@ const BusComponent: React.FC = () => {
           `http://localhost:5000/route/${routeName}`
         ); // Replace '/api/data' with your backend API endpoint
         const jsonData = await response.json();
+        console.log(jsonData);
         setStudentData(
-          jsonData.map((student: string) => ({
-            student: student,
-            isPresent: false,
+          jsonData.map((student: StudentData) => ({
+            name: student.name,
+            route: student.route,
+            grade: student.grade,
+            method: student.method,
+            school_attendance: student.school_attendance,
+            boarded: student.boarded,
             presentCount: 0,
             totalCount: jsonData.length,
           }))
@@ -48,10 +46,10 @@ const BusComponent: React.FC = () => {
     setStudentData((prevStudentData: StudentData[]) => {
       const updatedStudentData = [...prevStudentData];
       const [markedStudent] = updatedStudentData.splice(index, 1);
-      markedStudent.isPresent = true;
+      markedStudent.boarded = true;
       updatedStudentData.push(markedStudent);
       const presentCount = updatedStudentData.filter(
-        (student) => student.isPresent
+        (student) => student.boarded
       ).length;
       const totalCount = updatedStudentData.length;
       return updatedStudentData.map((student) => ({
@@ -66,10 +64,10 @@ const BusComponent: React.FC = () => {
     setStudentData((prevStudentData: StudentData[]) => {
       const updatedStudentData = [...prevStudentData];
       const [markedStudent] = updatedStudentData.splice(index, 1);
-      markedStudent.isPresent = false;
+      markedStudent.boarded = false;
       updatedStudentData.push(markedStudent);
       const presentCount = updatedStudentData.filter(
-        (student) => student.isPresent
+        (student) => student.boarded
       ).length;
       const totalCount = updatedStudentData.length;
       return updatedStudentData.map((student) => ({
@@ -118,10 +116,9 @@ const BusComponent: React.FC = () => {
             {studentData.map((student, index) => (
               <StudentRow
                 key={index}
-                student={student.student}
+                student={student}
                 markPresent={() => markStudentPresent(index)}
                 markAbsent={() => markStudentAbsent(index)}
-                isPresent={student.isPresent}
               />
             ))}
           </ul>
