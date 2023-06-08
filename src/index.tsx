@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import BusRoutes from "./Routes";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import BusComponent from "./BusComponent";
 
 const root = ReactDOM.createRoot(
