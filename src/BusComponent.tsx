@@ -17,6 +17,7 @@ const BusComponent: React.FC = () => {
         const jsonData = await response.json();
         setStudentData(
           jsonData.map((student: StudentData) => ({
+            id: student.id,
             name: student.name,
             route: student.route,
             grade: student.grade,

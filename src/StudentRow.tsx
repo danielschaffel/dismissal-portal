@@ -1,4 +1,5 @@
 export interface StudentData {
+  id: string;
   name: string;
   route: string;
   grade: string;
