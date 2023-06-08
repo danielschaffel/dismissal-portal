@@ -36,6 +36,20 @@ const BusComponent: React.FC = () => {
     fetchData();
   }, []);
 
+  const sendUpdate = async (id: string, boarded: boolean) => {
+    try {
+      await fetch(`http://localhost:5000/student/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ boarded: boarded }),
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   const markStudentPresent = (index: number) => {
     setStudentData((prevStudentData: StudentData[]) => {
       const updatedStudentData = [...prevStudentData];
@@ -46,6 +60,7 @@ const BusComponent: React.FC = () => {
         (student) => student.boarded
       ).length;
       const totalCount = updatedStudentData.length;
+      sendUpdate(markedStudent.id, true);
       return updatedStudentData.map((student) => ({
         ...student,
         presentCount,
@@ -64,6 +79,7 @@ const BusComponent: React.FC = () => {
         (student) => student.boarded
       ).length;
       const totalCount = updatedStudentData.length;
+      sendUpdate(markedStudent.id, false);
       return updatedStudentData.map((student) => ({
         ...student,
         presentCount,
@@ -71,6 +87,12 @@ const BusComponent: React.FC = () => {
       }));
     });
   };
+
+  if (studentData[0]) {
+    studentData[0].presentCount = studentData.filter(
+      (student) => student.boarded
+    ).length;
+  }
 
   const data = {
     labels: ["Present", "Absent"],
