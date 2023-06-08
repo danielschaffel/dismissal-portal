@@ -6,7 +6,6 @@ import { useParams } from "react-router-dom";
 
 const BusComponent: React.FC = () => {
   const { routeName } = useParams();
-  const [expanded, setExpanded] = useState(false);
   const [studentData, setStudentData] = useState<StudentData[]>([]);
 
   useEffect(() => {
@@ -16,7 +15,6 @@ const BusComponent: React.FC = () => {
           `http://localhost:5000/route/${routeName}`
         ); // Replace '/api/data' with your backend API endpoint
         const jsonData = await response.json();
-        console.log(jsonData);
         setStudentData(
           jsonData.map((student: StudentData) => ({
             name: student.name,
@@ -73,10 +71,6 @@ const BusComponent: React.FC = () => {
     });
   };
 
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
-
   const data = {
     labels: ["Present", "Absent"],
     datasets: [
@@ -97,14 +91,14 @@ const BusComponent: React.FC = () => {
 
   return (
     <div>
-      <h2 onClick={toggleExpand}>
+      <h2>
         Bus Route: {routeName} ({studentData[0]?.presentCount} /{" "}
         {studentData[0]?.totalCount})
         <div style={{ maxWidth: "100px", margin: "0 auto" }}>
           <Pie data={data} />
         </div>
       </h2>
-      {expanded && (
+      {
         <>
           <h3>Students:</h3>
           <ul>
@@ -118,7 +112,7 @@ const BusComponent: React.FC = () => {
             ))}
           </ul>
         </>
-      )}
+      }
     </div>
   );
 };
