@@ -1,39 +1,45 @@
 import React, { useState, useEffect, FC } from "react";
 // import { Router, Route} from 'react-router-dom';
 import "./App.css";
+import io from "socket.io-client";
 
 import BusComponent from "./BusComponent";
 
+const socket = io("http://localhost:5000");
 function App() {
-  const [data, setData] = useState({});
+  const [messages, setMessages] = useState<string[]>([]);
+  const [message, setMessage] = useState<string>("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000"); // Replace '/api/data' with your backend API endpoint
-        const jsonData = await response.json();
-        setData(jsonData);
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    };
+    socket.on("message", (message: string) => {
+      setMessages((messages) => [...messages, message]);
+    });
 
-    fetchData();
+    return () => {
+      socket.off("message");
+    };
   }, []);
-  if (!data) {
-    return <div>Loading...</div>;
-  }
+
+  const sendMessage = () => {
+    socket.emit("message", message);
+    setMessage("");
+  };
 
   return (
     <div>
-      <h1>Bus Information</h1>
-      {Object.entries(data).map(([routeName, students]) => (
-        <BusComponent
-          key={routeName}
-          // routeName={routeName}
-          // students={students as string[]}
-        />
-      ))}
+      <h1>Flask Websockets Example</h1>
+      <ul>
+        {messages.map((message, index) => (
+          <li key={index}>{message}</li>
+        ))}
+      </ul>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type your message..."
+      />
+      <button onClick={sendMessage}>Send</button>
     </div>
   );
 }

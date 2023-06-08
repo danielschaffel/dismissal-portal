@@ -3,17 +3,24 @@ import { Pie } from "react-chartjs-2";
 import "chart.js/auto";
 import StudentRow, { StudentData } from "./StudentRow";
 import { useParams } from "react-router-dom";
+import io from "socket.io-client";
 
 const BusComponent: React.FC = () => {
   const { routeName } = useParams();
+  let encodedRouteName = encodeURIComponent(routeName || "");
+  const socket = io(`http://localhost:5000/ws/route/${encodedRouteName}`);
   const [studentData, setStudentData] = useState<StudentData[]>([]);
+
+  const sendUpdate = async (id: string, boarded: boolean) => {
+    socket.emit("boarded", JSON.stringify({ id, boarded }));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(
           `http://localhost:5000/route/${routeName}`
-        ); // Replace '/api/data' with your backend API endpoint
+        );
         const jsonData = await response.json();
         setStudentData(
           jsonData.map((student: StudentData) => ({
@@ -31,61 +38,49 @@ const BusComponent: React.FC = () => {
       } catch (error) {
         console.error("Error:", error);
       }
+
+      socket.on("boarded", (data: string) => {
+        let parsedData = JSON.parse(data);
+        console.log("data", parsedData);
+        console.log("data id ", parsedData.id);
+        setStudentData((prevStudentData: StudentData[]) => {
+          const updatedStudentData = [...prevStudentData];
+          // get the index of the student with the matching id
+          //
+          let index = updatedStudentData.findIndex(
+            (student) => student.id === parsedData.id
+          );
+          console.log("index", index);
+          const [markedStudent] = updatedStudentData.splice(index, 1);
+          markedStudent.boarded = parsedData.boarded;
+          console.log("student", markedStudent);
+          updatedStudentData.push(markedStudent);
+          const presentCount = updatedStudentData.filter(
+            (student) => student.boarded
+          ).length;
+          const totalCount = updatedStudentData.length;
+          return updatedStudentData.map((student) => ({
+            ...student,
+            presentCount,
+            totalCount,
+          }));
+        });
+      });
     };
 
     fetchData();
   }, []);
 
-  const sendUpdate = async (id: string, boarded: boolean) => {
-    try {
-      await fetch(`http://localhost:5000/student/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ boarded: boarded }),
-      });
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
   const markStudentPresent = (index: number) => {
-    setStudentData((prevStudentData: StudentData[]) => {
-      const updatedStudentData = [...prevStudentData];
-      const [markedStudent] = updatedStudentData.splice(index, 1);
-      markedStudent.boarded = true;
-      updatedStudentData.push(markedStudent);
-      const presentCount = updatedStudentData.filter(
-        (student) => student.boarded
-      ).length;
-      const totalCount = updatedStudentData.length;
-      sendUpdate(markedStudent.id, true);
-      return updatedStudentData.map((student) => ({
-        ...student,
-        presentCount,
-        totalCount,
-      }));
-    });
+    const markedStudent = studentData[index];
+    sendUpdate(markedStudent.id, true);
+    return true;
   };
 
   const markStudentAbsent = (index: number) => {
-    setStudentData((prevStudentData: StudentData[]) => {
-      const updatedStudentData = [...prevStudentData];
-      const [markedStudent] = updatedStudentData.splice(index, 1);
-      markedStudent.boarded = false;
-      updatedStudentData.push(markedStudent);
-      const presentCount = updatedStudentData.filter(
-        (student) => student.boarded
-      ).length;
-      const totalCount = updatedStudentData.length;
-      sendUpdate(markedStudent.id, false);
-      return updatedStudentData.map((student) => ({
-        ...student,
-        presentCount,
-        totalCount,
-      }));
-    });
+    const markedStudent = studentData[index];
+    sendUpdate(markedStudent.id, false);
+    return true;
   };
 
   if (studentData[0]) {
