@@ -4,11 +4,6 @@ import "chart.js/auto";
 import StudentRow, { StudentData } from "./StudentRow";
 import { useParams } from "react-router-dom";
 
-interface BusComponentProps {
-  routeName: string;
-  students: string[];
-}
-
 const BusComponent: React.FC = () => {
   const { routeName } = useParams();
   const [expanded, setExpanded] = useState(false);
